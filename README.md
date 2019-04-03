@@ -1,0 +1,4 @@
+# AddonWebGame
+A simple web game where essentially it's a controlled, shared canvas.
+
+The game runs off a game that we play all the time. We named it addon, where each player draws something on the paper, then passes the paper to the next person. They would then draw something and hand it back, often ruining what the first person had originally planned. It's a game that bases itself on the improv skills of its users. We've tried to turn this into a web browser game where users can join lobbies or play with friends. Users will draw on the canvas one at a time in a controlled environment where if a player takes too long, makes a stroke too long, or "lifts" the pencil -- their turn is over. We are also attempting to make a gallery where players can see what was made in the past few minutes / days / all time. There will also be a ranking system where the players can upvote their favorite crazy drawings.
