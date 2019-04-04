@@ -12,6 +12,10 @@ if(socket != null) {
     // setup callbacks from server
     socket.on('turnOrder', turnOrder); // setup other players drawing
     socket.on('newTurn', newTurn);
+    window.onload = function() { // when the windows's ready, setup the keypress handler;
+        console.log("setup key handler");
+        document.getElementById('turn').onkeydown = handleKeyPress;
+    };
     console.log("connected to server successfully");
 }
 
@@ -26,10 +30,20 @@ function newTurn(data) {
     document.getElementById('turn').disabled = (data.nextTurn != myTurnOrder);
     document.getElementById('turn').value = ''; // clear the text box after our own submission to confirm
     document.getElementById('game').innerHTML += data.text; // every other turn, we'll add their text to the display
+    // TODO these instructions can change based on stuff
+    document.getElementById('instructions').innerHTML = ''; // clear instructions after the first turn
 }
 
 function endTurn() {
     // TODO: check contents to ensure valid
     socket.emit('turnEnd', document.getElementById('turn').value); // send the contents to the server
     // we don't have to handle newTurn stuff because the server will call it when we submit our turn
+}
+
+function handleKeyPress(event) {
+    // TODO: do nice syntax highlighting somehow with error checking
+    console.log(event);
+    if (event.keyCode == 13) { // enter pressed
+        endTurn();
+    }
 }
