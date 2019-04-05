@@ -194,16 +194,17 @@ function newConnection(socket) {
             // these should never get past the client, but we still have to check
             switch (getRoomState(socket.room)) {
                 case GAMESTATE.SINGLEWORD:
-                    if (!addText.match(/^[.,?!:";/ ]*[^ ]+[.,?!:";/ ]*$/)) return; // matches single words with punctuation
+                    // matches punctuation on either side of a word with any character except a space;
+                    if (!addText.match(/^[.,?!:";/ ]*[^.,?!:";/ ]+[.,?!:";/ ]*$/)) return;
                     break;
-                case GAMESTATE.THREEWORD:
+                case GAMESTATE.THREEWORD: // TODO process text to match threeword
                     break;
-                case GAMESTATE.SENTENCE;
+                case GAMESTATE.SENTENCE: // TODO process text to match sentence
                     break;
                 default:
+                    console.log("uh oh! got state " + getRoomState(socket.room));
                     return; // server error?
             }
-            // TODO process text to match current phase
             // if it needs a space between it and the last word
             // if there's punctuation, it won't put a space or if it's the first word/sentence in the paragraph
             if (currentStory.length > 0 && !addText.match(/^[.,?!:";/-]/)) {
