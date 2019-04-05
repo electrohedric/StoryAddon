@@ -36,6 +36,7 @@ function newTurn(data) {
 
 function endTurn() {
     // TODO: check contents to ensure valid
+    // errors
     socket.emit('turnEnd', document.getElementById('turn').value); // send the contents to the server
     // we don't have to handle newTurn stuff because the server will call it when we submit our turn
 }

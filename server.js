@@ -4,7 +4,7 @@ var express = require('express');
 var app = express();
 const genUUID = require('uuid/v1');
 
-let port = process.env.PORT; // environment variable provided by heroku for our app
+var port = process.env.PORT; // environment variable provided by heroku for our app
 if (port == null || port == "") { // if on prod server, then run on the required port, otherwise run on 8000 test port
     port = 8000;
 }
@@ -13,12 +13,17 @@ if (port == null || port == "") { // if on prod server, then run on the required
 
 var mongoDB = require('mongodb');
 var mongo = mongoDB.MongoClient;
-let mongoURL = process.env.MONGODB_URI;
+var mongoURL = process.env.MONGODB_URI;
 var storyDB;
 
-mongo.connect(mongoURL, { useNewUrlParser: true }, function (err, db) {
-    if(port == 8000) return; // if debug mode, we aren't going to be able to connect to the db. ignore
-    if(err) throw err;
+mongo.connect(mongoURL, {
+    useNewUrlParser: true
+}, function(err, db) {
+    if (port == 8000) {
+        console.log("Debug mode: ignored mongo.")
+        return; // if debug mode, we aren't going to be able to connect to the db. ignore
+    }
+    if (err) throw err;
     storyDB = db; // once we're connected to the database, set up the variable
     console.log("Connected to mongo!");
 });
@@ -32,8 +37,14 @@ function getStoryTitlesByPage(page, callback) { // page starts indexing at 1 for
     if (page >= 0) {
         // sorts in reverse order. skips the first n * page elements and limits to n elements
         db.collection("stories")
-            .find({}, {projection: {title:1}})
-            .sort({$natural:-1})
+            .find({}, {
+                projection: {
+                    title: 1
+                }
+            })
+            .sort({
+                $natural: -1
+            })
             .skip(pageSize * (page - 1))
             .limit(pageSize)
             .toArray(callback);
@@ -42,9 +53,11 @@ function getStoryTitlesByPage(page, callback) { // page starts indexing at 1 for
 
 function getStoryByID(storyID, callback) {
     if (storyDB == null) return;
-    var o_id = new mongoDB.ObjectID(storyID); // storyID should be in string form
+    let o_id = new mongoDB.ObjectID(storyID); // storyID should be in string form
     db.collection("stories")
-        .find({_id: o_id}, callback);
+        .find({
+            _id: o_id
+        }, callback);
 }
 
 function saveStory(storyText, callback) {
@@ -52,7 +65,10 @@ function saveStory(storyText, callback) {
     // save the first 50 characters as the title, and then save the entire text
     // must save whole text because we may allow users to change title
     db.collection("stories")
-        .insertOne({"title": storyText.substring(0, 50), "text": storyText}, callback);
+        .insertOne({
+            "title": storyText.substring(0, 50),
+            "text": storyText
+        }, callback);
 }
 
 /************* Socket **************/
@@ -65,38 +81,68 @@ app.use(express.static('public'));
 // keeps track of current turn per game, players connected, and the story
 var roomData = new Map();
 
-function initRoom(roomID) {
-    roomData.set(roomID, {story: "", turn: 0, connected: 1});
+const GAMESTATE = {
+    WAITING: 'waiting',
+    SINGLEWORD: 'singleword',
+    THREEWORD: 'threeword',
+    SENTENCE: 'sentence'
 }
+
+/*********** GETTERS AND SETTERS FOR ROOM ************/
+
+function initRoom(roomID) {
+    roomData.set(roomID, {
+        story: "",
+        turn: 0,
+        connected: 1,
+        state: GAMESTATE.WAITING
+    });
+}
+
 function getRoomStory(roomID) {
     return roomData.get(roomID).story;
 }
+
 function setRoomStory(roomID, newStory) {
     let data = roomData.get(roomID);
     data.story = newStory;
     roomData.set(roomID, data);
 }
+
 function getRoomTurn(roomID) {
     return roomData.get(roomID).turn;
 }
+
 function setRoomTurn(roomID, newTurn) {
     let data = roomData.get(roomID);
     data.turn = newTurn;
     roomData.set(roomID, data);
 }
+
 function getRoomConnected(roomID) {
     return roomData.get(roomID).connected;
 }
+
 function setRoomConnected(roomID, newConnected) {
     let data = roomData.get(roomID);
     data.connected = newConnected;
     roomData.set(roomID, data);
 }
 
-const roomCap = 2;
-let currentRoomSize = roomCap; // force an overflow on first join which will create a room
-let nextRoomWaiting = "";
+function getRoomState(roomID) {
+    return roomData.get(roomID).state;
+}
 
+function setRoomState(roomID, newGameState) {
+    let data = roomData.get(roomID);
+    data.state = newGameState;
+    roomData.set(roomID, data);
+}
+
+const roomCap = 2;
+var nextRoomWaiting = "";
+
+// calculates the turn index (0-n) number from a total number of turns
 function getTurnIndex(turnNum) {
     return (turnNum - 1) % roomCap + 1;
 }
@@ -105,25 +151,27 @@ function getTurnIndex(turnNum) {
 function newConnection(socket) {
     console.log("connected to " + socket.id);
     // TODO handle cookies if they have a session they are reconnecting to
-
     // connections will join a random UUID room unless there is one waiting
-    if (currentRoomSize + 1 > roomCap) { // if they were to join the room, not enough space, CREATE A NEW ROOM
+    // if they were to join the room, not enough space OR lobby doesn't exist, CREATE A NEW ROOM
+    if (!roomData.has(nextRoomWaiting) || getRoomConnected(nextRoomWaiting) + 1 > roomCap) {
         nextRoomWaiting = genUUID();
         initRoom(nextRoomWaiting); // sets connected to 1 and turn to 0 (basically null, no one can go)
-        currentRoomSize = 1;
     } else {
-        currentRoomSize++; // increment number connected to room
-        setRoomConnected(nextRoomWaiting, currentRoomSize);
+        setRoomConnected(nextRoomWaiting, getRoomConnected(nextRoomWaiting) + 1);  // increment number connected to room
     }
     // now guaranteed there's available space, join the room
     socket.join(nextRoomWaiting);
     socket.room = nextRoomWaiting; // to send to other sockets in this room
     // this value must be equal to that of the value in room turn in order for a turn to work
-    socket.turnOrder = currentRoomSize; // turn order is equivalent to connection order
+    socket.turnOrder = getRoomConnected(nextRoomWaiting); // turn order is equivalent to connection order
     console.log("put into room " + socket.room + ", with turn# " + socket.turnOrder);
-    if (currentRoomSize == roomCap) { // final dude, let's start the game
+    if (getRoomConnected(nextRoomWaiting) == roomCap) { // final dude, let's start the game
         setRoomTurn(nextRoomWaiting, 1);
-        io.in(socket.room).emit('newTurn', {nextTurn: 1, text: ''});
+        setRoomState(nextRoomWaiting, GAMESTATE.SINGLEWORD); // games start out as single word
+        io.in(socket.room).emit('newTurn', {
+            nextTurn: 1,
+            text: ''
+        });
         console.log("started game!");
     }
     // the only thing the client can use this for is to disable the box when it's not their turn
@@ -137,39 +185,62 @@ function newConnection(socket) {
         // if their turn order value is equivalent to the room, then it's their turn
         // the room's turn index is incremented without wrapping to provide a total turn number
         // so we must mod it to get the actual turn index
-        let roomTurn = getRoomTurn(socket.room);
-        let roomIndex = getTurnIndex(roomTurn);
-        if(roomIndex == socket.turnOrder) {
+        let roomTurn = getRoomTurn(socket.room); // total turn number
+        let roomIndex = getTurnIndex(roomTurn); // modulo'ed 1-n number indiciated client's turn
+        if (roomIndex == socket.turnOrder) {
             let currentStory = getRoomStory(socket.room);
             let addText = textData.trim(); // alter their text to fit basic grammar (i.e. format spaces)
+            // check for invalid syntax for the game state.
+            // these should never get past the client, but we still have to check
+            switch (getRoomState(socket.room)) {
+                case GAMESTATE.SINGLEWORD:
+                    if (!addText.match(/^[.,?!:";/ ]*[^ ]+[.,?!:";/ ]*$/)) return; // matches single words with punctuation
+                    break;
+                case GAMESTATE.THREEWORD:
+                    break;
+                case GAMESTATE.SENTENCE;
+                    break;
+                default:
+                    return; // server error?
+            }
             // TODO process text to match current phase
-             // if it needs a space between it and the last word
-             // if there's punctation, it won't put a space or if it's the first word/sentence in the paragraph
-            if (currentStory.length > 0 && !addText.match(/^[\.,?!:";/]/)) {
+            // if it needs a space between it and the last word
+            // if there's punctuation, it won't put a space or if it's the first word/sentence in the paragraph
+            if (currentStory.length > 0 && !addText.match(/^[.,?!:";/-]/)) {
                 addText = " " + addText; // add a space to separate this word/sentence from the last
             }
             setRoomTurn(socket.room, roomTurn + 1); // increment turn index
             // append their text to the room
             setRoomStory(socket.room, currentStory + addText);
-             // tell the entire room about their turn, including the sender
-            io.in(socket.room).emit('newTurn', {nextTurn: getTurnIndex(roomTurn + 1), text: addText});
+            // tell the entire room about their turn, including the sender
+            io.in(socket.room).emit('newTurn', {
+                nextTurn: getTurnIndex(roomTurn + 1),
+                text: addText
+            });
             console.log("received turn# " + roomTurn + " from " + socket.id + " in room " + socket.room + ", text='" + addText + "' next# " + getTurnIndex(roomTurn + 1));
         }
     });
 
     socket.on('disconnect', function() {
         // when a client disconnects, the room connected count decrements
+        console.log(socket.id + " abandoned room " + socket.room);
         let roomConnected = getRoomConnected(socket.room);
         setRoomConnected(socket.room, roomConnected - 1);
-        if(roomConnected == 1) { // they were the last to leave, so destroy the room after 60 seconds
-            // TODO if a player connects again, their cookie should allow them to reconnect to the room after a sudden disconnect
-            // FOR NOW, destroy the room immediately
-            roomData.delete(socket.room);
-            console.log("destroyed " + socket.room + ". everyone left :(");
+        // they were the last to leave, so destroy the room after 60 seconds
+        if (roomConnected == 1) { // (was 1, now 0)
+            // FOR NOW, destroy the room immediately IF the game's begun (i.e. it's possible for everyone to reconnect)
+            if (getRoomState(socket.room) == GAMESTATE.WAITING) { // they left the lobby and now it's empty
+                roomData.delete(socket.room);
+                console.log("destroyed " + socket.room + ". everyone left :(");
+            } else {
+                // TODO make it 60 seconds after cookies added
+                roomData.delete(socket.room);
+                console.log("this is where " + socket.room + " would be queued up to be destroyed soon.");
+            }
+        } else { // only send it if people are around to hear it
+            // a message is sent to all other connected sockets that their session is invalid
+            socket.to(socket.room).emit('playerLeft');
         }
-        // and a message is sent to all other connected sockets that their session is invalid
-        socket.to(socket.room).emit('playerLeft');
-        console.log(socket.id + " abandoned room " + socket.room);
     });
 }
 
