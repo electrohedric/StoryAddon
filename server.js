@@ -1,42 +1,42 @@
 /*********** Web server ************/
-
-var express = require('express');
-var app = express();
+const express = require('express');
+const app = express();
 const genUUID = require('uuid/v1');
 
-var port = process.env.PORT; // environment variable provided by heroku for our app
-if (port == null || port == "") { // if on prod server, then run on the required port, otherwise run on 8000 test port
+let port = process.env.PORT; // environment variable provided by heroku for our app
+if (port == null || port === "") { // if on prod server, then run on the required port, otherwise run on 8000 test port
     port = 8000;
 }
 
 /************* MongoDB *************/
+const mongoDB = require('mongodb');
+const mongo = mongoDB.MongoClient;
+const mongoURL = process.env.MONGODB_URI;
+let storyDB;
 
-var mongoDB = require('mongodb');
-var mongo = mongoDB.MongoClient;
-var mongoURL = process.env.MONGODB_URI;
-var storyDB;
-
-mongo.connect(mongoURL, {
-    useNewUrlParser: true
-}, function(err, db) {
-    if (port == 8000) {
-        console.log("Debug mode: ignored mongo.")
+let promise = mongo.connect(mongoURL, {useNewUrlParser: true}, function(err, db) {
+    if (port === 8000) {
+        console.log("Debug mode: ignored mongo.");
         return; // if debug mode, we aren't going to be able to connect to the db. ignore
     }
     if (err) throw err;
     storyDB = db; // once we're connected to the database, set up the variable
     console.log("Connected to mongo!");
 });
+promise.catch(function() {
+   console.log("Could not connect to mongo :(");
+});
 
 /*********** Gallery functions ************/
 
+/*
 const pageSize = 10;
-// returns a cursor to the data
-function getStoryTitlesByPage(page, callback) { // page starts indexing at 1 for user's sake
+
+function getStoryTitlesByPage(page, callback) { // page starts indexing at 1 for user's sake. returns cursor to data
     if (storyDB == null) return;
     if (page >= 0) {
         // sorts in reverse order. skips the first n * page elements and limits to n elements
-        db.collection("stories")
+        let promise = storyDB.collection("stories")
             .find({}, {
                 projection: {
                     title: 1
@@ -48,13 +48,16 @@ function getStoryTitlesByPage(page, callback) { // page starts indexing at 1 for
             .skip(pageSize * (page - 1))
             .limit(pageSize)
             .toArray(callback);
+        promise.catch(function() {
+           console.log("Could not get story page");
+        });
     }
 }
 
 function getStoryByID(storyID, callback) {
     if (storyDB == null) return;
     let o_id = new mongoDB.ObjectID(storyID); // storyID should be in string form
-    db.collection("stories")
+    storyDB.collection("stories")
         .find({
             _id: o_id
         }, callback);
@@ -64,29 +67,30 @@ function saveStory(storyText, callback) {
     if (storyDB == null) return; // this should honestly and realistically never occur
     // save the first 50 characters as the title, and then save the entire text
     // must save whole text because we may allow users to change title
-    db.collection("stories")
+    storyDB.collection("stories")
         .insertOne({
             "title": storyText.substring(0, 50),
             "text": storyText
         }, callback);
 }
+ */
 
 /************* Socket **************/
-var socket = require('socket.io');
-var server = app.listen(port); // listen for connections
-var io = socket(server);
+const socket = require('socket.io');
+const server = app.listen(port); // listen for connections
+const io = socket(server);
 io.sockets.on('connection', newConnection);
 app.use(express.static('public'));
 
 // keeps track of current turn per game, players connected, and the story
-var roomData = new Map();
+const roomData = new Map();
 
 const GAMESTATE = {
     WAITING: 'waiting',
     SINGLEWORD: 'singleword',
     THREEWORD: 'threeword',
     SENTENCE: 'sentence'
-}
+};
 
 /*********** GETTERS AND SETTERS FOR ROOM ************/
 
@@ -140,7 +144,7 @@ function setRoomState(roomID, newGameState) {
 }
 
 const roomCap = 2;
-var nextRoomWaiting = "";
+let nextRoomWaiting = "";
 
 // calculates the turn index (0-n) number from a total number of turns
 function getTurnIndex(turnNum) {
@@ -157,7 +161,8 @@ function newConnection(socket) {
         nextRoomWaiting = genUUID();
         initRoom(nextRoomWaiting); // sets connected to 1 and turn to 0 (basically null, no one can go)
     } else {
-        setRoomConnected(nextRoomWaiting, getRoomConnected(nextRoomWaiting) + 1);  // increment number connected to room
+        // increment number connected to room
+        setRoomConnected(nextRoomWaiting, getRoomConnected(nextRoomWaiting) + 1);
     }
     // now guaranteed there's available space, join the room
     socket.join(nextRoomWaiting);
@@ -165,10 +170,10 @@ function newConnection(socket) {
     // this value must be equal to that of the value in room turn in order for a turn to work
     socket.turnOrder = getRoomConnected(nextRoomWaiting); // turn order is equivalent to connection order
     console.log("put into room " + socket.room + ", with turn# " + socket.turnOrder);
-    if (getRoomConnected(nextRoomWaiting) == roomCap) { // final dude, let's start the game
+    if (getRoomConnected(nextRoomWaiting) === roomCap) { // final dude, let's start the game
         setRoomTurn(nextRoomWaiting, 1);
         setRoomState(nextRoomWaiting, GAMESTATE.SINGLEWORD); // games start out as single word
-        io.in(socket.room).emit('newTurn', {
+        io.sockets.in(socket.room).emit('newTurn', {
             nextTurn: 1,
             text: ''
         });
@@ -187,7 +192,7 @@ function newConnection(socket) {
         // so we must mod it to get the actual turn index
         let roomTurn = getRoomTurn(socket.room); // total turn number
         let roomIndex = getTurnIndex(roomTurn); // modulo'ed 1-n number indiciated client's turn
-        if (roomIndex == socket.turnOrder) {
+        if (roomIndex === socket.turnOrder) {
             let currentStory = getRoomStory(socket.room);
             let addText = textData.trim(); // alter their text to fit basic grammar (i.e. format spaces)
             // check for invalid syntax for the game state.
@@ -214,11 +219,12 @@ function newConnection(socket) {
             // append their text to the room
             setRoomStory(socket.room, currentStory + addText);
             // tell the entire room about their turn, including the sender
-            io.in(socket.room).emit('newTurn', {
+            io.sockets.in(socket.room).emit('newTurn', {
                 nextTurn: getTurnIndex(roomTurn + 1),
                 text: addText
             });
-            console.log("received turn# " + roomTurn + " from " + socket.id + " in room " + socket.room + ", text='" + addText + "' next# " + getTurnIndex(roomTurn + 1));
+            console.log("received turn# " + roomTurn + " from " + socket.id + " in room " + socket.room +
+                ", text='" + addText + "' next# " + getTurnIndex(roomTurn + 1));
         }
     });
 
@@ -228,9 +234,9 @@ function newConnection(socket) {
         let roomConnected = getRoomConnected(socket.room);
         setRoomConnected(socket.room, roomConnected - 1);
         // they were the last to leave, so destroy the room after 60 seconds
-        if (roomConnected == 1) { // (was 1, now 0)
+        if (roomConnected === 1) { // (was 1, now 0)
             // FOR NOW, destroy the room immediately IF the game's begun (i.e. it's possible for everyone to reconnect)
-            if (getRoomState(socket.room) == GAMESTATE.WAITING) { // they left the lobby and now it's empty
+            if (getRoomState(socket.room) === GAMESTATE.WAITING) { // they left the lobby and now it's empty
                 roomData.delete(socket.room);
                 console.log("destroyed " + socket.room + ". everyone left :(");
             } else {
