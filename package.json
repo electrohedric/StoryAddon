@@ -1,7 +1,7 @@
 {
-  "name": "addon_web_game",
-  "version": "1.0.0",
-  "description": "a simple web game which is essentially a controlled, shared canvas",
+  "name": "storyaddon_web_game",
+  "version": "1.1.0",
+  "description": "a simple web game which is essentially a controlled, shared text box which hosts a story",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -9,12 +9,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "C:\\Users\\Nick\\Documents\\GitHub\\AddonWebGame"
+    "url": "C:\\Users\\Nick\\Documents\\GitHub\\StoryAddon"
   },
   "keywords": [
     "addon",
-    "p5.js",
-    "canvas"
+    "story"
   ],
   "author": "electrohedric",
   "license": "ISC",
@@ -22,6 +21,7 @@
     "express": "^4.16.4",
     "mongodb": "^3.2.2",
     "socket.io": "^2.2.0",
-    "uuid": "^3.3.2"
+    "uuid": "^3.3.2",
+    "socket.io-client": "latest"
   }
 }

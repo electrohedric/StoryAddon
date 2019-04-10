@@ -1,7 +1,9 @@
+import io from 'socket.io-client';
+
 const DEV = false;
 
-var socket;
-var myTurnOrder;
+let socket;
+let myTurnOrder;
 
 if(DEV) {  // if currently developing, connect to localhost
     socket = io.connect("http://localhost:8000");
@@ -27,7 +29,7 @@ function turnOrder(turnOrder) {
 
 function newTurn(data) {
     // disable or enable the turn box depending on whether it's their turn or not
-    document.getElementById('turn').disabled = (data.nextTurn != myTurnOrder);
+    document.getElementById('turn').disabled = (data.nextTurn !== myTurnOrder);
     document.getElementById('turn').value = ''; // clear the text box after our own submission to confirm
     document.getElementById('game').innerHTML += data.text; // every other turn, we'll add their text to the display
     // TODO these instructions can change based on stuff
@@ -44,7 +46,7 @@ function endTurn() {
 function handleKeyPress(event) {
     // TODO: do nice syntax highlighting somehow with error checking
     console.log(event);
-    if (event.keyCode == 13) { // enter pressed
+    if (event.keyCode === 13) { // enter pressed
         endTurn();
     }
 }
