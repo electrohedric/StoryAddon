@@ -14,7 +14,7 @@ const mongo = mongoDB.MongoClient;
 const mongoURL = process.env.MONGODB_URI;
 let storyDB;
 
-let promise = mongo.connect(mongoURL, {useNewUrlParser: true}, function(err, db) {
+mongo.connect(mongoURL, {useNewUrlParser: true}, function(err, db) {
     if (port === 8000) {
         console.log("Debug mode: ignored mongo.");
         return; // if debug mode, we aren't going to be able to connect to the db. ignore
@@ -22,9 +22,6 @@ let promise = mongo.connect(mongoURL, {useNewUrlParser: true}, function(err, db)
     if (err) throw err;
     storyDB = db; // once we're connected to the database, set up the variable
     console.log("Connected to mongo!");
-});
-promise.catch(function() {
-   console.log("Could not connect to mongo :(");
 });
 
 /*********** Gallery functions ************/
@@ -36,7 +33,7 @@ function getStoryTitlesByPage(page, callback) { // page starts indexing at 1 for
     if (storyDB == null) return;
     if (page >= 0) {
         // sorts in reverse order. skips the first n * page elements and limits to n elements
-        let promise = storyDB.collection("stories")
+        storyDB.collection("stories")
             .find({}, {
                 projection: {
                     title: 1
@@ -48,9 +45,6 @@ function getStoryTitlesByPage(page, callback) { // page starts indexing at 1 for
             .skip(pageSize * (page - 1))
             .limit(pageSize)
             .toArray(callback);
-        promise.catch(function() {
-           console.log("Could not get story page");
-        });
     }
 }
 

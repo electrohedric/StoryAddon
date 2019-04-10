@@ -1,6 +1,4 @@
-import io from 'socket.io-client';
-
-const DEV = false;
+const DEV = true;
 
 let socket;
 let myTurnOrder;
