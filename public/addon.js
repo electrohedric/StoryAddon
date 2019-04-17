@@ -3,13 +3,19 @@ const DEV = true;
 let socket;
 let myTurnOrder;
 
+//store the key in a cookie
+//SetCookie('rediskey', <%= rediskey %>); //http://msdn.microsoft.com/en-us/library/ms533693(v=vs.85).aspx
+
 if(DEV) {  // if currently developing, connect to localhost
     socket = io.connect("http://localhost:8000");
 } else {
     socket = io.connect("https://storyaddon.herokuapp.com/");
 }
+
 if(socket != null) {
     // setup callbacks from server
+	
+	socket.on('connect', onConnect);
     socket.on('turnOrder', turnOrder); // setup other players drawing
     socket.on('newTurn', newTurn);
     window.onload = function() { // when the windows's ready, setup the keypress handler;
@@ -17,6 +23,27 @@ if(socket != null) {
         document.getElementById('turn').onkeydown = handleKeyPress;
     };
     console.log("connected to server successfully");
+}
+
+function getCookie(cname) {
+  var name = cname + "=";
+  var decodedCookie = decodeURIComponent(document.cookie);
+  var ca = decodedCookie.split(';');
+  for(var i = 0; i <ca.length; i++) {
+    var c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+}
+
+function onConnect() {
+	var rediskey = getCookie('rediskey');
+	socket.emit('login', {rediskey: rediskey});
 }
 
 function turnOrder(turnOrder) {

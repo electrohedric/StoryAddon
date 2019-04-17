@@ -3,6 +3,18 @@ const express = require('express');
 const app = express();
 const genUUID = require('uuid/v1');
 
+let cookieParser = require('cookie-parser');
+
+// need cookieParser middleware before we can do anything with cookies
+app.use(cookieParser());
+
+// set a cookie
+app.use(function (req, res, next) {
+	// TODO set random session id (uuid) if one is not set already in their cookies
+	res.cookie("rediskey", 100);//req.sessionID);
+	next(); // <-- important!
+});
+
 let port = process.env.PORT; // environment variable provided by heroku for our app
 if (port == null || port === "") { // if on prod server, then run on the required port, otherwise run on 8000 test port
     port = 8000;
@@ -145,39 +157,53 @@ function getTurnIndex(turnNum) {
     return (turnNum - 1) % roomCap + 1;
 }
 
+/* sockets currently store the following custom values:
+room		= the room id the socket is currently joined to
+turnOrder	= the index of the turn this player is
+rediskey	= the unique id to identify this player if they rejoin
+*/
+
 // called when we get a new connection
 function newConnection(socket) {
-    console.log("connected to " + socket.id);
-    // TODO handle cookies if they have a session they are reconnecting to
-    // connections will join a random UUID room unless there is one waiting
-    // if they were to join the room, not enough space OR lobby doesn't exist, CREATE A NEW ROOM
-    if (!roomData.has(nextRoomWaiting) || getRoomConnected(nextRoomWaiting) + 1 > roomCap) {
-        nextRoomWaiting = genUUID();
-        initRoom(nextRoomWaiting); // sets connected to 1 and turn to 0 (basically null, no one can go)
-    } else {
-        // increment number connected to room
-        setRoomConnected(nextRoomWaiting, getRoomConnected(nextRoomWaiting) + 1);
-    }
-    // now guaranteed there's available space, join the room
-    socket.join(nextRoomWaiting);
-    socket.room = nextRoomWaiting; // to send to other sockets in this room
-    // this value must be equal to that of the value in room turn in order for a turn to work
-    socket.turnOrder = getRoomConnected(nextRoomWaiting); // turn order is equivalent to connection order
-    console.log("put into room " + socket.room + ", with turn# " + socket.turnOrder);
-    if (getRoomConnected(nextRoomWaiting) === roomCap) { // final dude, let's start the game
-        setRoomTurn(nextRoomWaiting, 1);
-        setRoomState(nextRoomWaiting, GAMESTATE.SINGLEWORD); // games start out as single word
-        io.sockets.in(socket.room).emit('newTurn', {
-            nextTurn: 1,
-            text: ''
-        });
-        console.log("started game!");
-    }
-    // the only thing the client can use this for is to disable the box when it's not their turn
-    // even if the user manages to re-enable the box, the server still won't accept their turn
-    // because of the room turn value
-    socket.emit("turnOrder", socket.turnOrder);
-
+	console.log("connected to " + socket.id);
+	
+	socket.on('login', function(cookie) {
+		socket.rediskey = cookie.rediskey;
+		console.log("rediskey " + socket.rediskey);
+		// TODO check if this rediskey is in the list of disconnected clients
+		// TODO if they are, restore their data and join them to the proper room
+		// TODO ensure the client has the full story (erase the box and send them the complete story thus far)
+		
+		// connections will join a random UUID room unless there is one waiting
+		// if they were to join the room, not enough space OR lobby doesn't exist, CREATE A NEW ROOM
+		if (!roomData.has(nextRoomWaiting) || getRoomConnected(nextRoomWaiting) + 1 > roomCap) {
+			nextRoomWaiting = genUUID();
+			initRoom(nextRoomWaiting); // sets connected to 1 and turn to 0 (basically null, no one can go)
+		} else {
+			// increment number connected to room
+			setRoomConnected(nextRoomWaiting, getRoomConnected(nextRoomWaiting) + 1);
+		}
+		// now guaranteed there's available space, join the room
+		socket.join(nextRoomWaiting);
+		socket.room = nextRoomWaiting; // to send to other sockets in this room
+		// this value must be equal to that of the value in room turn in order for a turn to work
+		socket.turnOrder = getRoomConnected(nextRoomWaiting); // turn order is equivalent to connection order
+		console.log("put into room " + socket.room + ", with turn# " + socket.turnOrder);
+		if (getRoomConnected(nextRoomWaiting) === roomCap) { // final dude, let's start the game
+			setRoomTurn(nextRoomWaiting, 1);
+			setRoomState(nextRoomWaiting, GAMESTATE.SINGLEWORD); // games start out as single word
+			io.sockets.in(socket.room).emit('newTurn', {
+				nextTurn: 1,
+				text: ''
+			});
+			console.log("started game!");
+		}
+		// the only thing the client can use this for is to disable the box when it's not their turn
+		// even if the user manages to re-enable the box, the server still won't accept their turn
+		// because of the room turn value
+		socket.emit("turnOrder", socket.turnOrder);
+	});
+    
     // called when the client submits their turn
     socket.on('turnEnd', function(textData) {
         // data will be the new text they added
@@ -194,9 +220,10 @@ function newConnection(socket) {
             switch (getRoomState(socket.room)) {
                 case GAMESTATE.SINGLEWORD:
                     // matches punctuation on either side of a word with any character except a space;
-                    if (!addText.match(/^[.,?!:";/ ]*[^.,?!:";/ ]+[.,?!:";/ ]*$/)) return;
+                    if (!addText.match(/^[.,?!:";/ ]*(?!.*'')[^.,?!:";/ ]+[.,?!:";/ ]*$/)) return;
                     break;
-                case GAMESTATE.THREEWORD: // TODO process text to match threeword
+                case GAMESTATE.THREEWORD:
+					if (!addText.match(/^[.,?!:";/ ]*(?!.*'')(?:[^.,?!:";/ \n]+[.,?!:";/ ]*){1,3}$/)) return;
                     break;
                 case GAMESTATE.SENTENCE: // TODO process text to match sentence
                     break;
@@ -223,25 +250,29 @@ function newConnection(socket) {
     });
 
     socket.on('disconnect', function() {
-        // when a client disconnects, the room connected count decrements
-        console.log(socket.id + " abandoned room " + socket.room);
-        let roomConnected = getRoomConnected(socket.room);
-        setRoomConnected(socket.room, roomConnected - 1);
-        // they were the last to leave, so destroy the room after 60 seconds
-        if (roomConnected === 1) { // (was 1, now 0)
-            // FOR NOW, destroy the room immediately IF the game's begun (i.e. it's possible for everyone to reconnect)
-            if (getRoomState(socket.room) === GAMESTATE.WAITING) { // they left the lobby and now it's empty
-                roomData.delete(socket.room);
-                console.log("destroyed " + socket.room + ". everyone left :(");
-            } else {
-                // TODO make it 60 seconds after cookies added
-                roomData.delete(socket.room);
-                console.log("this is where " + socket.room + " would be queued up to be destroyed soon.");
-            }
-        } else { // only send it if people are around to hear it
-            // a message is sent to all other connected sockets that their session is invalid
-            socket.to(socket.room).emit('playerLeft');
-        }
+		if (socket.room !== undefined) {
+			// when a client disconnects, the room connected count decrements
+			console.log(socket.id + " abandoned room " + socket.room);
+			// TODO add this socket's rediskey to a map along with the rest of their data so as to restore their data if they reconnect
+			let roomConnected = getRoomConnected(socket.room);
+			setRoomConnected(socket.room, roomConnected - 1);
+			// they were the last to leave, so destroy the room after 60 seconds
+			if (roomConnected === 1) { // (was 1, now 0)
+				// FOR NOW, destroy the room immediately IF the game's begun (i.e. it's possible for everyone to reconnect)
+				if (getRoomState(socket.room) === GAMESTATE.WAITING) { // they left the lobby and now it's empty
+					roomData.delete(socket.room);
+					console.log("destroyed " + socket.room + ". everyone left :(");
+				} else {
+					// TODO make it 60 seconds not immediately
+					// TODO stop the destruction countdown if a player reconnects before the room is destroyed
+					roomData.delete(socket.room);
+					console.log("this is where " + socket.room + " would be queued up to be destroyed soon.");
+				}
+			} else { // only send it if people are around to hear it
+				// a message is sent to all other connected sockets that their session is invalid
+				socket.to(socket.room).emit('playerLeft');
+			}
+		}
     });
 }
 

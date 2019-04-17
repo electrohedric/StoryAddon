@@ -18,10 +18,11 @@
   "author": "electrohedric",
   "license": "ISC",
   "dependencies": {
+    "cookie-parser": "^1.4.4",
     "express": "^4.16.4",
     "mongodb": "^3.2.2",
     "socket.io": "^2.2.0",
-    "uuid": "^3.3.2",
-    "socket.io-client": "latest"
+    "socket.io-client": "latest",
+    "uuid": "^3.3.2"
   }
 }
