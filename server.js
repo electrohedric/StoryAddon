@@ -10,8 +10,9 @@ app.use(cookieParser());
 
 // set a cookie
 app.use(function (req, res, next) {
-	// TODO set random session id (uuid) if one is not set already in their cookies
-	res.cookie("rediskey", 100);//req.sessionID);
+	var id = genUUID();
+	console.log("Server side id: " + id);
+	res.cookie("rediskey", id);//req.sessionID);
 	next(); // <-- important!
 });
 
@@ -162,6 +163,13 @@ room		= the room id the socket is currently joined to
 turnOrder	= the index of the turn this player is
 rediskey	= the unique id to identify this player if they rejoin
 */
+var disconectedPlayers = new Map();
+function checkDisconectedList(key){
+	if(key in disconectedPlayers){
+		return true;
+	}
+	return false;
+}
 
 // called when we get a new connection
 function newConnection(socket) {
@@ -171,8 +179,11 @@ function newConnection(socket) {
 		socket.rediskey = cookie.rediskey;
 		console.log("rediskey " + socket.rediskey);
 		// TODO check if this rediskey is in the list of disconnected clients
-		// TODO if they are, restore their data and join them to the proper room
-		// TODO ensure the client has the full story (erase the box and send them the complete story thus far)
+		if(checkDisconectedList(socket.rediskey)){
+			// TODO if they are, restore their data and join them to the proper room
+			// TODO ensure the client has the full story (erase the box and send them the complete story thus far)
+			
+		}
 		
 		// connections will join a random UUID room unless there is one waiting
 		// if they were to join the room, not enough space OR lobby doesn't exist, CREATE A NEW ROOM
@@ -248,12 +259,25 @@ function newConnection(socket) {
                 ", text='" + addText + "' next# " + getTurnIndex(roomTurn + 1));
         }
     });
+	var check = function(time, max){
+		if(time > max) return false;
+		if(condition){//conected back
+			newConnection(socket);
+			concole.log(socket.id + " connected back")
+			return true;
+		}
+		else {
+			time++;
+			setTimeout(check(time, max), 1000); // check again in a second
+		}
+	}
 
     socket.on('disconnect', function() {
 		if (socket.room !== undefined) {
 			// when a client disconnects, the room connected count decrements
 			console.log(socket.id + " abandoned room " + socket.room);
-			// TODO add this socket's rediskey to a map along with the rest of their data so as to restore their data if they reconnect
+
+			disconectedPlayers.set(socket.rediskey, {room:socket.room, turnOrder:socket.turnOrder});//what data to store
 			let roomConnected = getRoomConnected(socket.room);
 			setRoomConnected(socket.room, roomConnected - 1);
 			// they were the last to leave, so destroy the room after 60 seconds
@@ -263,8 +287,11 @@ function newConnection(socket) {
 					roomData.delete(socket.room);
 					console.log("destroyed " + socket.room + ". everyone left :(");
 				} else {
-					// TODO make it 60 seconds not immediately
+					//var connectedBack = check(0, 60);
 					// TODO stop the destruction countdown if a player reconnects before the room is destroyed
+					//if(connectedBack){
+					//	return;						
+					//}
 					roomData.delete(socket.room);
 					console.log("this is where " + socket.room + " would be queued up to be destroyed soon.");
 				}
