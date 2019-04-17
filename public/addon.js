@@ -18,11 +18,17 @@ if(socket != null) {
 	socket.on('connect', onConnect);
     socket.on('turnOrder', turnOrder); // setup other players drawing
     socket.on('newTurn', newTurn);
+	socket.on('newCookie', newCookie);
     window.onload = function() { // when the windows's ready, setup the keypress handler;
         console.log("setup key handler");
         document.getElementById('turn').onkeydown = handleKeyPress;
     };
     console.log("connected to server successfully");
+}
+
+function newCookie(cookie){
+	//TODO relogin with a new cookie
+	document.cookie = 'rediskey' + "=" + cookie;
 }
 
 function getCookie(cname) {
