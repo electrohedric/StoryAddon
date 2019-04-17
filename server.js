@@ -184,7 +184,7 @@ function newConnection(socket) {
 	
 	socket.on('login', function(cookie) {
 		
-		if(cookie !== null){
+		if(cookie.rediskey){
 			socket.rediskey = cookie.rediskey;
 			console.log("rediskey " + cookie.rediskey);
 			if(disconectedPlayers.has(cookie.rediskey)){
@@ -195,13 +195,14 @@ function newConnection(socket) {
 				
 				setRoomConnected(socket.room, getRoomConnected(socket.room) + 1);
 				console.log("reconected into room " + socket.room + ", with turn# " + socket.turnOrder);
-				// TODO ensure the client has the full story (erase the box and send them the complete story thus far)
+				socket.emit("reloadGameData", {nextTurn: getTurnIndex(getRoomTurn(socket.room)), text: getRoomStory(socket.room)});
 				
 				disconectedPlayers.delete(cookie.rediskey);
 				return;
 			}
 		} else {
 			socket.emit("newCookie", genUUID());
+			console.log("sent a new cookie");
 		}
 		
 		// connections will join a random UUID room unless there is one waiting
@@ -283,8 +284,9 @@ function newConnection(socket) {
 		if (socket.room !== undefined) {
 			// when a client disconnects, the room connected count decrements
 			console.log(socket.id + " abandoned room " + socket.room);
-
-			disconectedPlayers.set(socket.rediskey, {room:socket.room, turnOrder:socket.turnOrder});//what data to store
+			if (getRoomState(socket.room) !== GAMESTATE.WAITING){ //NOT THE LOBBY
+				disconectedPlayers.set(socket.rediskey, {room:socket.room, turnOrder:socket.turnOrder});
+			}
 			let roomConnected = getRoomConnected(socket.room);
 			setRoomConnected(socket.room, roomConnected - 1);
 			
@@ -292,7 +294,7 @@ function newConnection(socket) {
 				// FOR NOW, destroy the room immediately IF the game's begun (i.e. it's possible for everyone to reconnect)
 				if (getRoomState(socket.room) === GAMESTATE.WAITING) { // they left the lobby and now it's empty
 					roomData.delete(socket.room);
-					console.log("destroyed " + socket.room + ". everyone left :(");
+					console.log("destroyed lobby " + socket.room + ". everyone left :(");
 				} else {
 					
 					// they were the last to leave, so destroy the room after 60 seconds
@@ -303,7 +305,7 @@ function newConnection(socket) {
 						}
 					}, 10000);
 					
-					console.log("this is where " + socket.room + " would be queued up to be destroyed soon.");
+					console.log(socket.room + " queued up to be destroyed soon.");
 				}
 			} else { // only send it if people are around to hear it
 				// a message is sent to all other connected sockets that their session is invalid

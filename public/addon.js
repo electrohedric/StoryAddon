@@ -19,7 +19,8 @@ if(socket != null) {
     socket.on('turnOrder', turnOrder); // setup other players drawing
     socket.on('newTurn', newTurn);
 	socket.on('newCookie', newCookie);
-    window.onload = function() { // when the windows's ready, setup the keypress handler;
+	socket.on('reloadGameData', reloadGameData);
+	window.onload = function() { // when the windows's ready, setup the keypress handler;
         console.log("setup key handler");
         document.getElementById('turn').onkeydown = handleKeyPress;
     };
@@ -58,13 +59,24 @@ function turnOrder(turnOrder) {
     // turn handling is done 100% server-side so they won't be able to cheat the game
 }
 
-function newTurn(data) {
-    // disable or enable the turn box depending on whether it's their turn or not
+function loadTurn(data){
+	
+	// disable or enable the turn box depending on whether it's their turn or not
     document.getElementById('turn').disabled = (data.nextTurn !== myTurnOrder);
     document.getElementById('turn').value = ''; // clear the text box after our own submission to confirm
-    document.getElementById('game').innerHTML += data.text; // every other turn, we'll add their text to the display
-    // TODO these instructions can change based on stuff
+    
+    // TODO these instructions can change based on stuff like current game mode
     document.getElementById('instructions').innerHTML = ''; // clear instructions after the first turn
+}
+
+function reloadGameData(data){
+	loadTurn(data);
+    document.getElementById('game').innerHTML = data.text; // puts all the text from the story in the story box
+}
+
+function newTurn(data) {
+	loadTurn(data);
+    document.getElementById('game').innerHTML += data.text; // every other turn, we'll add their text to the display
 }
 
 function endTurn() {
