@@ -13,6 +13,10 @@ if (port == null || port === "") { // if on prod server, then run on the require
     port = 8000;
 }
 
+//Time consts
+const SINGLEWORDTIME = 60 * 1000 * 0.5;
+const THREEWORDTIME = 60 * 1000 * 0.5;
+
 /************* MongoDB *************/
 const mongoDB = require('mongodb');
 const mongo = mongoDB.MongoClient;
@@ -179,6 +183,15 @@ function setDisconectedTurnOrder(rediskey, newTurnOrder) {
     disconectedPlayers.set(rediskey, data);
 }
 
+function changeState(room, newState){
+	setRoomState(room, newState);
+	switch (newState) {
+		case GAMESTATE.SINGLEWORD: setTimeout(changeState.bind( room, GAMESTATE.THREEWORD), SINGLEWORDTIME); break;
+		case GAMESTATE.THREEWORD: setTimeout(changeState.bind( room, GAMESTATE.SENTENCE), THREEWORDTIME); break;
+		default: break;
+	}
+}
+
 // called when we get a new connection
 function newConnection(socket) {
 	console.log("connected to " + socket.id);
@@ -196,7 +209,12 @@ function newConnection(socket) {
 				
 				setRoomConnected(socket.room, getRoomConnected(socket.room) + 1);
 				console.log("reconected into room " + socket.room + ", with turn# " + socket.turnOrder);
-				socket.emit("reloadGameData", {nextTurn: getTurnIndex(getRoomTurn(socket.room)), turnOrder: socket.turnOrder, text: getRoomStory(socket.room)});
+				socket.emit("reloadGameData", {
+					nextTurn: getTurnIndex(getRoomTurn(socket.room)), 
+					turnOrder: socket.turnOrder, 
+					text: getRoomStory(socket.room),
+					mode: getRoomState()
+				});
 				
 				disconectedPlayers.delete(cookie.rediskey);
 				return;
@@ -232,13 +250,15 @@ function newConnection(socket) {
 		console.log("put into room " + socket.room + ", with turn# " + socket.turnOrder);
 		if (getRoomConnected(nextRoomWaiting) === roomCap) { // final dude, let's start the game
 			setRoomTurn(nextRoomWaiting, 1);
-			setRoomState(nextRoomWaiting, GAMESTATE.SINGLEWORD); // games start out as single word
+			changeState(socket.room, GAMESTATE.SINGLEWORD);
 			io.sockets.in(socket.room).emit('newTurn', {
 				nextTurn: 1,
-				text: ''
+				text: '',
+				mode: getRoomState(socket.room)
 			});
 			console.log("started game!");
 			nextRoomWaiting = null;
+			
 		}
 		// the only thing the client can use this for is to disable the box when it's not their turn
 		// even if the user manages to re-enable the box, the server still won't accept their turn
@@ -284,7 +304,8 @@ function newConnection(socket) {
             // tell the entire room about their turn, including the sender
             io.sockets.in(socket.room).emit('newTurn', {
                 nextTurn: getTurnIndex(roomTurn + 1),
-                text: addText
+                text: addText,
+				mode: getRoomState(socket.room)
             });
             console.log("received turn# " + roomTurn + " from " + socket.id + " in room " + socket.room +
                 ", text='" + addText + "' next# " + getTurnIndex(roomTurn + 1));

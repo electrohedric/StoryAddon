@@ -28,7 +28,6 @@ if(socket != null) {
 }
 
 function newCookie(cookie){
-	//TODO relogin with a new cookie
 	document.cookie = 'rediskey' + "=" + cookie;
 }
 
