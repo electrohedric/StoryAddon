@@ -262,10 +262,10 @@ function newConnection(socket) {
             switch (getRoomState(socket.room)) {
                 case GAMESTATE.SINGLEWORD:
                     // matches punctuation on either side of a word with any character except a space;
-                    if (!addText.match(/^[.,?!:";/ ]*(?!.*'')[^.,?!:";/ ]+[.,?!:";/ ]*$/)) return;
+                    if (!addText.match(/^[.,?!:";/ \u201C\u201D]*[^.,?!:";/ \u201C\u201D]+[.,?!:";/ \u201C\u201D]*$/)) return;
                     break;
                 case GAMESTATE.THREEWORD:
-					if (!addText.match(/^[.,?!:";/ ]*(?!.*'')(?:[^.,?!:";/ \n]+[.,?!:";/ ]*){1,3}$/)) return;
+					if (!addText.match(/^[.,?!:";/ \u201C\u201D]*(?:[^.,?!:";/ \n\u201C\u201D]+[.,?!:";/ \u201C\u201D]*){1,3}$/)) return;
                     break;
                 case GAMESTATE.SENTENCE: // TODO process text to match sentence
                     break;
