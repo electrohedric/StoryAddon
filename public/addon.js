@@ -20,6 +20,7 @@ if(socket != null) {
     socket.on('newTurn', newTurn);
 	socket.on('newCookie', newCookie);
 	socket.on('reloadGameData', reloadGameData);
+	socket.on('updateMode', updateMode);
 	window.onload = function() { // when the windows's ready, setup the keypress handler;
         console.log("setup key handler");
         document.getElementById('turn').onkeydown = handleKeyPress;
