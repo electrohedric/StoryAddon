@@ -302,6 +302,11 @@ function newConnection(socket) {
 					setTimeout(function (){
 						if(getRoomConnected(socket.room) === 0){
 							roomData.delete(socket.room);
+							disconectedPlayers.forEach(function(value, key, map) {
+								if (value.room === socket.room) { // remove all other players connecting
+									map.delete(key); // screw you guys!
+								}
+							});
 							console.log("destroyed " + socket.room + ". everyone left :(");
 						}
 					}, 10000);
