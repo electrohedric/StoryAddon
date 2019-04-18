@@ -201,8 +201,9 @@ function newConnection(socket) {
 				return;
 			}
 		} else {
-			socket.emit("newCookie", genUUID());
-			console.log("sent a new cookie");
+			socket.rediskey = genUUID();
+			socket.emit("newCookie", socket.rediskey);
+			console.log("sent a new cookie, " + socket.rediskey);
 		}
 		
 		// connections will join a random UUID room unless there is one waiting
