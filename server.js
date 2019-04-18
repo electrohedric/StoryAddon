@@ -184,11 +184,17 @@ function setDisconectedTurnOrder(rediskey, newTurnOrder) {
 }
 
 function changeState(room, newState){
-	setRoomState(room, newState);
-	switch (newState) {
-		case GAMESTATE.SINGLEWORD: setTimeout(changeState.bind( room, GAMESTATE.THREEWORD), SINGLEWORDTIME); break;
-		case GAMESTATE.THREEWORD: setTimeout(changeState.bind( room, GAMESTATE.SENTENCE), THREEWORDTIME); break;
-		default: break;
+	if(roomData.has(room)) { // ensure the room wasn't destroyed
+		setRoomState(room, newState);
+		switch (newState) {
+			case GAMESTATE.SINGLEWORD:			
+				setTimeout(changeState.bind( room, GAMESTATE.THREEWORD), SINGLEWORDTIME); 
+				break;
+			case GAMESTATE.THREEWORD: 
+				setTimeout(changeState.bind( room, GAMESTATE.SENTENCE), THREEWORDTIME); 
+				break;
+			default: break;
+		}
 	}
 }
 
