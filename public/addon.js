@@ -58,18 +58,37 @@ function turnOrder(t) {
     // turn handling is done 100% server-side so they won't be able to cheat the game
 }
 
+const GAMESTATE = {
+    WAITING: 'waiting',
+    SINGLEWORD: 'singleword',
+    THREEWORD: 'threeword',
+    SENTENCE: 'sentence'
+};
+
 function loadTurn(data){
-	
+	var ghostTextInstructions = "";
+	var modeInfo = "";
+	switch (data.mode){
+		case GAMESTATE.SINGLEWORD: 
+			ghostTextInstructions = "(Enter a single word)"; 
+			modeInfo = ""
+			break;
+		case GAMESTATE.THREEWORD: 
+			ghostTextInstructions = "(Enter up to three words)"; 
+			modeInfo = ""
+			break;
+		case GAMESTATE.SENTENCE: 
+			ghostTextInstructions = "(Enter any number of words)"; 
+			modeInfo = ""
+			break;
+	}
 	// disable or enable the turn box depending on whether it's their turn or not
     document.getElementById('turn').disabled = (data.nextTurn !== myTurnOrder);
-	document.getElementById('turn').placeholder = data.nextTurn === myTurnOrder ? "It is your turn" : "It is another players turn";
+	document.getElementById('turn').placeholder = data.nextTurn === myTurnOrder ? "It is your turn " + ghostTextInstructions : "It is another players turn";
     document.getElementById('turn').value = ''; // clear the text box after our own submission to confirm
 	if(data.nextTurn === myTurnOrder) {
 		document.getElementById('turn').focus();
 	}
-    
-    // TODO these instructions can change based on stuff like current game mode
-    document.getElementById('instructions').innerHTML = 'When it is your turn, you may enter 1, 3 or more words deppending on the stage of the game. When it is not yout turn, you must wait for all other players in the room to take a turn.'; // clear instructions after the first turn
 }
 
 function reloadGameData(data){
