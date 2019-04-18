@@ -144,6 +144,7 @@ function setRoomState(roomID, newGameState) {
 
 const roomCap = 2;
 let nextRoomWaiting = "";
+let lobbyList = new Set();
 
 // calculates the turn index (0-n) number from a total number of turns
 function getTurnIndex(turnNum) {
@@ -195,7 +196,7 @@ function newConnection(socket) {
 				
 				setRoomConnected(socket.room, getRoomConnected(socket.room) + 1);
 				console.log("reconected into room " + socket.room + ", with turn# " + socket.turnOrder);
-				socket.emit("reloadGameData", {turnOrder: getTurnIndex(socket.turnOrder), text: getRoomStory(socket.room)});
+				socket.emit("reloadGameData", {nextTurn: getTurnIndex(getRoomTurn(socket.room)), turnOrder: socket.turnOrder, text: getRoomStory(socket.room)});
 				
 				disconectedPlayers.delete(cookie.rediskey);
 				return;
@@ -209,6 +210,7 @@ function newConnection(socket) {
 		// connections will join a random UUID room unless there is one waiting
 		// if they were to join the room, not enough space OR lobby doesn't exist, CREATE A NEW ROOM
 		if (!roomData.has(nextRoomWaiting) || getRoomConnected(nextRoomWaiting) + 1 > roomCap) {
+			lobbyList.clear();
 			nextRoomWaiting = genUUID();
 			initRoom(nextRoomWaiting); // sets connected to 1 and turn to 0 (basically null, no one can go)
 		} else {
@@ -218,8 +220,15 @@ function newConnection(socket) {
 		// now guaranteed there's available space, join the room
 		socket.join(nextRoomWaiting);
 		socket.room = nextRoomWaiting; // to send to other sockets in this room
+		
+		for(var i = 1; i <= roomCap; i++){
+			if(!lobbyList.has(i)){
+				lobbyList.add(i);
+				socket.turnOrder = i; // turn order is equivalent to connection order
+				break;
+			}
+		}
 		// this value must be equal to that of the value in room turn in order for a turn to work
-		socket.turnOrder = getRoomConnected(nextRoomWaiting); // turn order is equivalent to connection order
 		console.log("put into room " + socket.room + ", with turn# " + socket.turnOrder);
 		if (getRoomConnected(nextRoomWaiting) === roomCap) { // final dude, let's start the game
 			setRoomTurn(nextRoomWaiting, 1);
@@ -286,11 +295,14 @@ function newConnection(socket) {
 		if (socket.room !== undefined) {
 			// when a client disconnects, the room connected count decrements
 			console.log(socket.id + " abandoned room " + socket.room);
-			if (getRoomState(socket.room) !== GAMESTATE.WAITING){ //NOT THE LOBBY
+			if (getRoomState(socket.room) === GAMESTATE.WAITING){ // THE LOBBY
+				lobbyList.delete(socket.turnOrder);
+			} else {  //NOT THE LOBBY
 				disconectedPlayers.set(socket.rediskey, {room:socket.room, turnOrder:socket.turnOrder});
 			}
 			let roomConnected = getRoomConnected(socket.room);
 			setRoomConnected(socket.room, roomConnected - 1);
+			
 			
 			if (roomConnected === 1) { // (was 1, now 0)
 				// FOR NOW, destroy the room immediately IF the game's begun (i.e. it's possible for everyone to reconnect)
