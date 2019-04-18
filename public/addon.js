@@ -71,15 +71,15 @@ function loadTurn(data){
 	switch (data.mode){
 		case GAMESTATE.SINGLEWORD: 
 			ghostTextInstructions = "(Enter a single word)";
-			modeInstructions = "1";
+			modeInstructions = "Story Mode: Single words";
 			break;
 		case GAMESTATE.THREEWORD: 
 			ghostTextInstructions = "(Enter up to three words)";
-			modeInstructions = "3";
+			modeInstructions = "Story Mode: Three words";
 			break;
 		case GAMESTATE.SENTENCE: 
 			ghostTextInstructions = "(Enter any number of words)";
-			modeInstructions = "+++";
+			modeInstructions = "Story Mode: Unlimited words";
 			break;
 	}
 	// disable or enable the turn box depending on whether it's their turn or not
