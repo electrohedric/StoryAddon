@@ -67,19 +67,15 @@ const GAMESTATE = {
 
 function loadTurn(data){
 	var ghostTextInstructions = "";
-	var modeInfo = "";
 	switch (data.mode){
 		case GAMESTATE.SINGLEWORD: 
 			ghostTextInstructions = "(Enter a single word)"; 
-			modeInfo = ""
 			break;
 		case GAMESTATE.THREEWORD: 
 			ghostTextInstructions = "(Enter up to three words)"; 
-			modeInfo = ""
 			break;
 		case GAMESTATE.SENTENCE: 
 			ghostTextInstructions = "(Enter any number of words)"; 
-			modeInfo = ""
 			break;
 	}
 	// disable or enable the turn box depending on whether it's their turn or not
@@ -89,6 +85,7 @@ function loadTurn(data){
 	if(data.nextTurn === myTurnOrder) {
 		document.getElementById('turn').focus();
 	}
+	document.getElementById('instructions').innerHTML = ""; //clear when game has begun
 }
 
 function reloadGameData(data){
