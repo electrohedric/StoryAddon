@@ -196,11 +196,11 @@ function changeState(room, newState){
 		switch (newState) {
 			case GAMESTATE.SINGLEWORD:
 				console.log("set timer for " + GAMESTATE.THREEWORD);
-				setTimeout(changeState.bind(room, GAMESTATE.THREEWORD), SINGLEWORDTIME); 
+				setTimeout(function() {changeState(room, GAMESTATE.THREEWORD);}, SINGLEWORDTIME); 
 				break;
 			case GAMESTATE.THREEWORD:
 				console.log("set timer for " + GAMESTATE.SENTENCE);
-				setTimeout(changeState.bind(room, GAMESTATE.SENTENCE), THREEWORDTIME); 
+				setTimeout(function() {changeState(room, GAMESTATE.SENTENCE);}, THREEWORDTIME); 
 				break;
 			default: break;
 		}
