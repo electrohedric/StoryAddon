@@ -70,6 +70,7 @@ function loadTurn(data){
 }
 
 function reloadGameData(data){
+	turnOrder(data.turnOrder);
 	loadTurn(data);
     document.getElementById('game').innerHTML = data.text; // puts all the text from the story in the story box
 }
