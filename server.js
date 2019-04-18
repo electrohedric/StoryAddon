@@ -195,7 +195,7 @@ function newConnection(socket) {
 				
 				setRoomConnected(socket.room, getRoomConnected(socket.room) + 1);
 				console.log("reconected into room " + socket.room + ", with turn# " + socket.turnOrder);
-				socket.emit("reloadGameData", {nextTurn: getTurnIndex(getRoomTurn(socket.room)), text: getRoomStory(socket.room)});
+				socket.emit("reloadGameData", {turnOrder: getTurnIndex(socket.turnOrder), text: getRoomStory(socket.room)});
 				
 				disconectedPlayers.delete(cookie.rediskey);
 				return;
