@@ -229,6 +229,7 @@ function newConnection(socket) {
 				text: ''
 			});
 			console.log("started game!");
+			nextRoomWaiting = null;
 		}
 		// the only thing the client can use this for is to disable the box when it's not their turn
 		// even if the user manages to re-enable the box, the server still won't accept their turn
