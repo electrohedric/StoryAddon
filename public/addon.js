@@ -53,8 +53,8 @@ function onConnect() {
 	socket.emit('login', {rediskey: rediskey});
 }
 
-function turnOrder(turnOrder) {
-    myTurnOrder = turnOrder; // the only thing this changes is when we allow the user to type
+function turnOrder(t) {
+    myTurnOrder = t; // the only thing this changes is when we allow the user to type
     // even if the user hacks and changes it, it will do nothing except make it difficult to type anything
     // turn handling is done 100% server-side so they won't be able to cheat the game
 }
@@ -70,7 +70,7 @@ function loadTurn(data){
 }
 
 function reloadGameData(data){
-	turnOrder(data.turnOrder);
+	myTurnOrder = data.nextTurn;
 	loadTurn(data);
     document.getElementById('game').innerHTML = data.text; // puts all the text from the story in the story box
 }
