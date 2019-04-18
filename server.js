@@ -142,7 +142,7 @@ function setRoomState(roomID, newGameState) {
     roomData.set(roomID, data);
 }
 
-const roomCap = 3;
+const roomCap = 2;
 let nextRoomWaiting = "";
 let lobbyList = new Set();
 
