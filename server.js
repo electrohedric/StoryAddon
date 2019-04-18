@@ -190,7 +190,7 @@ function changeState(room, newState){
 		io.sockets.in(room).emit('newTurn', { // emit a mode change
 			mode: newState,
 			text: "",
-			nextTurn: getRoomTurn(room)
+			nextTurn: getTurnIndex(getRoomTurn(room))
 		});
 		console.log("1:changing state to " + newState);
 		switch (newState) {
