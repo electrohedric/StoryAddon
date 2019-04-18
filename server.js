@@ -228,7 +228,7 @@ function newConnection(socket) {
 					nextTurn: getTurnIndex(getRoomTurn(socket.room)), 
 					turnOrder: socket.turnOrder, 
 					text: getRoomStory(socket.room),
-					mode: getRoomState()
+					mode: getRoomState(socket.room)
 				});
 				
 				disconectedPlayers.delete(cookie.rediskey);
