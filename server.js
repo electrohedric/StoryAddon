@@ -184,14 +184,23 @@ function setDisconectedTurnOrder(rediskey, newTurnOrder) {
 }
 
 function changeState(room, newState){
+	console.log("changing state to " + newState + " in " + room);
 	if(roomData.has(room)) { // ensure the room wasn't destroyed
 		setRoomState(room, newState);
+		io.sockets.in(room).emit('newTurn', { // emit a mode change
+			mode: newState,
+			text: "",
+			nextTurn: getRoomTurn(room)
+		});
+		console.log("1:changing state to " + newState);
 		switch (newState) {
-			case GAMESTATE.SINGLEWORD:			
-				setTimeout(changeState.bind( room, GAMESTATE.THREEWORD), SINGLEWORDTIME); 
+			case GAMESTATE.SINGLEWORD:
+				console.log("set timer for " + GAMESTATE.THREEWORD);
+				setTimeout(changeState.bind(room, GAMESTATE.THREEWORD), SINGLEWORDTIME); 
 				break;
-			case GAMESTATE.THREEWORD: 
-				setTimeout(changeState.bind( room, GAMESTATE.SENTENCE), THREEWORDTIME); 
+			case GAMESTATE.THREEWORD:
+				console.log("set timer for " + GAMESTATE.SENTENCE);
+				setTimeout(changeState.bind(room, GAMESTATE.SENTENCE), THREEWORDTIME); 
 				break;
 			default: break;
 		}

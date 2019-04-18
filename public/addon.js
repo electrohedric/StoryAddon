@@ -20,6 +20,7 @@ if(socket != null) {
     socket.on('newTurn', newTurn);
 	socket.on('newCookie', newCookie);
 	socket.on('reloadGameData', reloadGameData);
+	socket.on('updateMode', updateMode);
 	window.onload = function() { // when the windows's ready, setup the keypress handler;
         console.log("setup key handler");
         document.getElementById('turn').onkeydown = handleKeyPress;
@@ -67,15 +68,19 @@ const GAMESTATE = {
 
 function loadTurn(data){
 	var ghostTextInstructions = "";
+	var modeInstructions = "";
 	switch (data.mode){
 		case GAMESTATE.SINGLEWORD: 
-			ghostTextInstructions = "(Enter a single word)"; 
+			ghostTextInstructions = "(Enter a single word)";
+			modeInstructions = "1";
 			break;
 		case GAMESTATE.THREEWORD: 
-			ghostTextInstructions = "(Enter up to three words)"; 
+			ghostTextInstructions = "(Enter up to three words)";
+			modeInstructions = "3";
 			break;
 		case GAMESTATE.SENTENCE: 
-			ghostTextInstructions = "(Enter any number of words)"; 
+			ghostTextInstructions = "(Enter any number of words)";
+			modeInstructions = "+++";
 			break;
 	}
 	// disable or enable the turn box depending on whether it's their turn or not
@@ -85,7 +90,7 @@ function loadTurn(data){
 	if(data.nextTurn === myTurnOrder) {
 		document.getElementById('turn').focus();
 	}
-	document.getElementById('instructions').innerHTML = ""; //clear when game has begun
+	document.getElementById('instructions').innerHTML = modeInstructions; //clear when game has begun
 }
 
 function reloadGameData(data){
