@@ -253,6 +253,7 @@ function newConnection(socket) {
 		// now guaranteed there's available space, join the room
 		socket.join(nextRoomWaiting);
 		socket.room = nextRoomWaiting; // to send to other sockets in this room
+		socket.endedGame = false;
 		
 		for(var i = 1; i <= roomCap; i++){
 			if(!lobbyList.has(i)){
@@ -328,13 +329,17 @@ function newConnection(socket) {
     });
 
 	function leaveRoom(permenant){
+		
+	}
+	
+    socket.on('disconnect', function() {
 		if (socket.room !== undefined) {
 			// when a client disconnects, the room connected count decrements
 			console.log(socket.id + " abandoned room " + socket.room);
 			if (getRoomState(socket.room) === GAMESTATE.WAITING){ // THE LOBBY
 				lobbyList.delete(socket.turnOrder);
 			} else {  //NOT THE LOBBY
-				if(!permenant){
+				if(!socket.endedGame) {
 					disconectedPlayers.set(socket.rediskey, {room:socket.room, turnOrder:socket.turnOrder});
 				}
 			}
@@ -369,14 +374,10 @@ function newConnection(socket) {
 				socket.to(socket.room).emit('playerLeft');
 			}
 		}
-	}
-	
-    socket.on('disconnect', function() {
-		leaveRoom(false);
     });
 	
-	socket.on('leavingGame', function(){
-		leaveRoom(true);
+	socket.on('leavingGame', function() {
+		socket.endedGame = true;
 	});
 }
 

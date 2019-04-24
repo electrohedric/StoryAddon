@@ -121,4 +121,5 @@ function handleKeyPress(event) {
 
 function leaveGame(){
 	socket.emit("leavingGame");
+	window.location.replace("index.html");
 }
