@@ -36,9 +36,12 @@ h1 {
 	font-family: Verdana;
 	font-size: 28px;
 }
-table, th, td {
+table, th{
   border: 1px solid black;
 	text-align: left;
 	margin: auto;
+}
+td{
+padding: 10px;
 }
 
