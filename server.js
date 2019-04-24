@@ -35,7 +35,7 @@ mongo.connect(mongoURL, {useNewUrlParser: true}, function(err, db) {
 
 /*********** Gallery functions ************/
 
-/*
+
 const pageSize = 10;
 
 function getStoryTitlesByPage(page, callback) { // page starts indexing at 1 for user's sake. returns cursor to data
@@ -66,6 +66,7 @@ function getStoryByID(storyID, callback) {
         }, callback);
 }
 
+// callback should be function(err, res)
 function saveStory(storyText, callback) {
     if (storyDB == null) return; // this should honestly and realistically never occur
     // save the first 50 characters as the title, and then save the entire text
@@ -76,7 +77,7 @@ function saveStory(storyText, callback) {
             "text": storyText
         }, callback);
 }
- */
+
 
 /************* Socket **************/
 const socket = require('socket.io');
@@ -144,6 +145,18 @@ function setRoomState(roomID, newGameState) {
     let data = roomData.get(roomID);
     data.state = newGameState;
     roomData.set(roomID, data);
+}
+
+function saveRoomStory(roomID, attemptsLeft) {
+	saveStory(getRoomStory(roomID), function(err, res) {
+		if (err) {
+			console.log("failed to save story, attempts left: " + attemptsLeft);
+			if (attemptsLeft > 0) {
+				setTimeout(function() { saveRoomStory(roomID, attemptsLeft - 1) }, 10000) // every 10 seconds
+			}
+		}
+		console.log("inserted " + res.insertedCount);
+	});
 }
 
 const roomCap = 2;
@@ -354,7 +367,8 @@ function newConnection(socket) {
 					
 					// they were the last to leave, so destroy the room after 10 seconds
 					setTimeout(function (){
-						if(getRoomConnected(socket.room) === 0){
+						if(getRoomConnected(socket.room) === 0) {
+							saveRoomStory(socket.room);
 							roomData.delete(socket.room);
 							disconectedPlayers.forEach(function(value, key, map) {
 								if (value.room === socket.room) { // remove all other players connecting

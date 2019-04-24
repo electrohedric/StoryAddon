@@ -29,10 +29,10 @@ if(socket != null) {
 }
 
 function newCookie(cookie){
-	var d = new Date();
-	d.setTime(d.getTime() + (24*60*60*1000)); // expires in 24 hours
-	var expires = "expires="+ d.toUTCString();
-	document.cookie = 'rediskey' + "=" + cookie + ";" + expires;
+	//var d = new Date();
+	//d.setTime(d.getTime() + (24*60*60*1000)); // expires in 24 hours
+	//var expires = "expires="+ d.toUTCString();
+	document.cookie = 'rediskey' + "=" + cookie;// + ";" + expires;
 }
 
 function getCookie(cname) {
