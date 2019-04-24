@@ -1,0 +1,36 @@
+body {
+  background-color: #f0f0f8;
+  	margin: auto;
+	text-align: center;
+}
+
+#leave {
+	color: red;
+	background: black;
+}
+
+#turn {
+	font-family: Baskerville;
+	font-size: 16px;
+}
+
+textarea {
+	font-family: Baskerville;
+	font-size: 16px;
+	width: 90%;
+}
+
+p {
+	font-family: Baskerville;
+	font-size: 18px;
+
+}
+
+h1 {
+	font-family: Impact;
+}
+
+.links {
+	font-family: Verdana;
+	padding: 10px;
+}
