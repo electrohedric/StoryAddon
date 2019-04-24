@@ -1,5 +1,5 @@
 body {
-  background-color: #f0f0f8;
+	background-color: #f0f0f8;
   	margin: auto;
 	text-align: center;
 }
@@ -7,6 +7,18 @@ body {
 #leave {
 	font-family: Baskerville;
 	font-size: 14px;
+}
+
+#load-stories {
+	font-family: Baskerville;
+	font-size: 18px;
+	float: right;
+}
+
+#div-load {
+	padding: 30px;
+	width: 80%;
+	margin: auto;
 }
 
 #turn {
@@ -40,6 +52,7 @@ h1 {
 table {
 	width: 80%;
 	border-collapse: collapse;
+	margin: auto;
 }
 
 table, td, th {

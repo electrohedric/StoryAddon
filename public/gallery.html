@@ -10,16 +10,15 @@
 		<a href="http://storyaddon.herokuapp.com/">Main Page</a>
 	</div>
 	<p>This is where you can see previous games other users have played</p>
-	<table>
-	<tr>
-		<th>Time
-		</th>
-		<th>Word Count
-		</th>
-		<th>Title
-		</th>
-		
-	</tr>
+	<table id="stories">
+		<tr>
+			<th>Time</th>
+			<th>Word Count</th>
+			<th>Title</th>
+		</tr>
 	</table>
+	<div id="div-load">
+		<button id="load-stories" onclick="load_next_stories()">Load more...</button>
+	</div>
 </body>
 </html>
