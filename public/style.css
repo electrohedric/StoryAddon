@@ -37,7 +37,11 @@ h1 {
 	font-size: 28px;
 }
 
-table, td {
+table {
+	width: 80%;
+}
+
+table, td, th {
 	border: 1px solid black;
 	text-align: left;
 	margin: auto;
@@ -46,7 +50,7 @@ table, td {
 td {
 	padding: 10px;
 	font-family: Baskerville;
-	font-size: 16px;
+	font-size: 22px;
 }
 
 th {
