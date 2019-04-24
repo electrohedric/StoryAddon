@@ -184,15 +184,14 @@ function setDisconectedTurnOrder(rediskey, newTurnOrder) {
 }
 
 function changeState(room, newState){
-	console.log("changing state to " + newState + " in " + room);
 	if(roomData.has(room)) { // ensure the room wasn't destroyed
+		console.log("changing state to " + newState + " in " + room);
 		setRoomState(room, newState);
 		io.sockets.in(room).emit('newTurn', { // emit a mode change
 			mode: newState,
 			text: "",
 			nextTurn: getTurnIndex(getRoomTurn(room))
 		});
-		console.log("1:changing state to " + newState);
 		switch (newState) {
 			case GAMESTATE.SINGLEWORD:
 				console.log("set timer for " + GAMESTATE.THREEWORD);
@@ -204,6 +203,8 @@ function changeState(room, newState){
 				break;
 			default: break;
 		}
+	} else {
+		console.log("canceled state changer to in " + room);
 	}
 }
 
@@ -327,10 +328,6 @@ function newConnection(socket) {
                 ", text='" + addText + "' next# " + getTurnIndex(roomTurn + 1));
         }
     });
-
-	function leaveRoom(permenant){
-		
-	}
 	
     socket.on('disconnect', function() {
 		if (socket.room !== undefined) {
@@ -340,21 +337,22 @@ function newConnection(socket) {
 				lobbyList.delete(socket.turnOrder);
 			} else {  //NOT THE LOBBY
 				if(!socket.endedGame) {
+					console.log("added " + socket.rediskey + " to disconnected list");
 					disconectedPlayers.set(socket.rediskey, {room:socket.room, turnOrder:socket.turnOrder});
 				}
 			}
-			let roomConnected = getRoomConnected(socket.room);
-			setRoomConnected(socket.room, roomConnected - 1);
+			let roomConnected = getRoomConnected(socket.room) - 1;
+			setRoomConnected(socket.room, roomConnected);
 			
-			
-			if (roomConnected === 1) { // (was 1, now 0)
+			// if they were the last to leave
+			if (roomConnected === 0) {
 				// FOR NOW, destroy the room immediately IF the game's begun (i.e. it's possible for everyone to reconnect)
 				if (getRoomState(socket.room) === GAMESTATE.WAITING) { // they left the lobby and now it's empty
 					roomData.delete(socket.room);
 					console.log("destroyed lobby " + socket.room + ". everyone left :(");
 				} else {
 					
-					// they were the last to leave, so destroy the room after 60 seconds
+					// they were the last to leave, so destroy the room after 10 seconds
 					setTimeout(function (){
 						if(getRoomConnected(socket.room) === 0){
 							roomData.delete(socket.room);
@@ -370,8 +368,8 @@ function newConnection(socket) {
 					console.log(socket.room + " queued up to be destroyed soon.");
 				}
 			} else { // only send it if people are around to hear it
-				// a message is sent to all other connected sockets that their session is invalid
-				socket.to(socket.room).emit('playerLeft');
+				// a message is sent to all other connected sockets that someone left, either temporarily or permanently
+				socket.to(socket.room).emit('playerLeft', socket.endedGame);
 			}
 		}
     });

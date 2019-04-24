@@ -20,6 +20,7 @@ if(socket != null) {
     socket.on('newTurn', newTurn);
 	socket.on('newCookie', newCookie);
 	socket.on('reloadGameData', reloadGameData);
+	socket.on('playerLeft', playerLeft);
 	window.onload = function() { // when the windows's ready, setup the keypress handler;
         console.log("setup key handler");
         document.getElementById('turn').onkeydown = handleKeyPress;
@@ -96,12 +97,13 @@ function reloadGameData(data){
 	myTurnOrder = data.turnOrder;
 	loadTurn(data);
     document.getElementById('game').innerHTML = data.text; // puts all the text from the story in the story box
+	document.getElementById('leave').disabled = false;
 }
 
 function newTurn(data) {
-	document.getElementById('leave').disabled = false;
 	loadTurn(data);
     document.getElementById('game').innerHTML += data.text; // every other turn, we'll add their text to the display
+	document.getElementById('leave').disabled = false;
 }
 
 function endTurn() {
@@ -122,4 +124,10 @@ function handleKeyPress(event) {
 function leaveGame(){
 	socket.emit("leavingGame");
 	window.location.replace("index.html");
+}
+
+function playerLeft(permanent) { // bool
+	if (permanent) {
+		document.getElementById('players').innerHTML = "A player left... doesn't look like they're coming back.";
+	}
 }
