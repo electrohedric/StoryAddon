@@ -29,7 +29,10 @@ if(socket != null) {
 }
 
 function newCookie(cookie){
-	document.cookie = 'rediskey' + "=" + cookie;
+	var d = new Date();
+	d.setTime(d.getTime() + (24*60*60*1000)); // expires in 24 hours
+	var expires = "expires="+ d.toUTCString();
+	document.cookie = 'rediskey' + "=" + cookie + ";" + expires;
 }
 
 function getCookie(cname) {
@@ -128,6 +131,8 @@ function leaveGame(){
 
 function playerLeft(permanent) { // bool
 	if (permanent) {
-		document.getElementById('players').innerHTML = "A player left... doesn't look like they're coming back.";
+		alert("A player left... and they're not coming back.");
+	} else {
+		alert("A player left... but they may come back.");
 	}
 }
