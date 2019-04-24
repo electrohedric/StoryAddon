@@ -29,7 +29,7 @@ mongo.connect(mongoURL, {useNewUrlParser: true}, function(err, db) {
         return; // if debug mode, we aren't going to be able to connect to the db. ignore
     }
     if (err) throw err;
-    storyDB = db; // once we're connected to the database, set up the variable
+    storyDB = db.db(process.env.MONGODB_DBNAME); // once we're connected to the database, set up the variable
     console.log("Connected to mongo!");
 });
 
