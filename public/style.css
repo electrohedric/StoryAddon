@@ -45,17 +45,16 @@ table {
 table, td, th {
 	border: 1px solid black;
 	text-align: left;
-	margin: auto;
 }
 
 td {
 	padding: 10px;
-	font-family: Baskerville;
+	font-family: Verdana;
 	font-size: 22px;
 }
 
 th {
 	padding: 10px;
-	font-family: Baskerville;
+	font-family: Verdana;
 	font-size: 24px;
 }
