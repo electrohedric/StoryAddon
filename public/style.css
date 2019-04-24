@@ -36,3 +36,6 @@ h1 {
 	font-family: Verdana;
 	font-size: 28px;
 }
+table, th, td {
+  border: 1px solid black;
+}
