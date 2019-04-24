@@ -5,8 +5,8 @@ body {
 }
 
 #leave {
-	color: red;
-	background: black;
+	font-family: Baskerville;
+	font-size: 14px;
 }
 
 #turn {
@@ -31,6 +31,7 @@ h1 {
 }
 
 .links {
-	font-family: Verdana;
 	padding: 10px;
+	font-family: Verdana;
+	font-size: 28px;
 }

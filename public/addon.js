@@ -99,6 +99,7 @@ function reloadGameData(data){
 }
 
 function newTurn(data) {
+	document.getElementById('leave').disabled = false;
 	loadTurn(data);
     document.getElementById('game').innerHTML += data.text; // every other turn, we'll add their text to the display
 }
@@ -116,4 +117,8 @@ function handleKeyPress(event) {
     if (event.keyCode === 13) { // enter pressed
         endTurn();
     }
+}
+
+function leaveGame(){
+	socket.emit("leavingGame");
 }

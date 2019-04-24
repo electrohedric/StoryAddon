@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<!--suppress HtmlFormInputWithoutLabel -->
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="libraries/socket.io.slim.js"></script>
+	<script src="addon.js"></script>
+	<link rel="stylesheet" href="style.css">
+	<noscript>Yeah you definitely need javascript to run this</noscript>
+	<title>Add-on</title>
+</head>
+<body>
+	<h1>The Add-On Web Game</h1>
+	<textarea id="game" rows="10" cols="50" readonly></textarea>
+	<br>
+	<input type="text" id="turn" size="50" disabled>
+	<br>
+	<p id="instructions">The game will not start until the first player has entered their first turn</p>
+	<button id="leave" width="50" onclick="leaveGame()" disabled>End Game</button>
+</body>
