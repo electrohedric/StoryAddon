@@ -28,7 +28,7 @@ p {
 }
 
 h1 {
-	font-family: Impact;
+	font-family: fantasy;
 }
 
 .links {
@@ -36,12 +36,21 @@ h1 {
 	font-family: Verdana;
 	font-size: 28px;
 }
-table, th{
-  border: 1px solid black;
+
+table, td {
+	border: 1px solid black;
 	text-align: left;
 	margin: auto;
 }
-td{
-padding: 10px;
+
+td {
+	padding: 10px;
+	font-family: Baskerville;
+	font-size: 16px;
 }
 
+th {
+	padding: 10px;
+	font-family: Baskerville;
+	font-size: 24px;
+}
