@@ -21,10 +21,7 @@ if (socket != null) {
 
 function receive(data) {
     if (data === null) {
-        document.getElementById('date').innerText = "Created: ?";
-        document.getElementById('word-count').innerText = "#Words: ?";
-        document.getElementById('title').innerText = "That ID does not exist";
-        document.title = "Story Add-on Error";
+        err();
     } else {
         document.getElementById('date').innerText = "Created: " + new Date(data.date).toLocaleString();
         document.getElementById('word-count').innerText = "#Words: " + data.wordCount;
@@ -37,6 +34,6 @@ function receive(data) {
 function err() {
     document.getElementById('date').innerText = "Created: ?";
     document.getElementById('word-count').innerText = "#Words: ?";
-    document.getElementById('title').innerText = "Server error";
+    document.getElementById('title').innerText = "ID not found";
     document.title = "Story Add-on Error";
 }
