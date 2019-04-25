@@ -85,12 +85,16 @@ function saveStory(storyText, callback) {
     if (storyDB == null) return; // this should honestly and realistically never occur
     // save the first 50 characters as the title, and then save the entire text
     // must save whole text because we may allow users to change title
+    let words = storyText.match(/[^.,?!:";/ \u201C\u201D]+/g);
+    if (words === null) {
+        return; // we don't want to save a story that has literally nothing in it.
+    }
     storyDB.collection("stories")
         .insertOne({
             "title": storyText.substring(0, 50), // first 50 chars is the title, for now
             "text": storyText, // FULL text
             "date": new Date(), // current date
-            "wordCount": storyText.match(/[^.,?!:";/ \u201C\u201D]+/g).length // compute length matching all word chars
+            "wordCount": words.length // compute length matching all word chars
         }, callback);
 }
 
