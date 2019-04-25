@@ -449,7 +449,6 @@ function newViewConnection(socket) {
     socket.on('get', function(storyID) {
         getStoryByID(storyID, function(err, res) {
             if (err) {
-                if (res === 'i')
                 socket.emit('err');
             } else {
                 socket.emit('receive', res);
