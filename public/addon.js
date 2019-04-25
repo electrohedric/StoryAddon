@@ -128,7 +128,7 @@ function leaveGame() {
 
 function playerLeft(permanent) { // bool
     if (permanent) {
-        alert("A player left... and they're not coming back.");
+        alert("A player has ended the game and left.");
     } else {
         alert("A player left... but they may come back.");
     }
