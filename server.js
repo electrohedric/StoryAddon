@@ -84,7 +84,7 @@ function saveStory(storyText, callback) {
             "title": storyText.substring(0, 50), // first 50 chars is the title, for now
             "text": storyText, // FULL text
             "date": new Date(), // current date
-            "wordCount": [...storyText.match(/[^.,?!:";/ \u201C\u201D]+/g)].length // compute length matching all word chars
+            "wordCount": storyText.match(/[^.,?!:";/ \u201C\u201D]+/g).length // compute length matching all word chars
         }, callback);
 }
 
