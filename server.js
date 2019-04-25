@@ -405,20 +405,29 @@ function newShowConnection(socket) {
 
     socket.pageNum = 0;
     socket.connectedDate = new Date();
+    socket.cancelNext = false; // true when there are no more pages to get
 
     socket.on('next', function () {
-        getStoryTitlesByPage(socket.pageNum, socket.connectedDate, function (err, res) {
-            res.forEach(function (x) { // x has _id, title, date, wordCount
-                console.log("GOT DATA: " + x);
-                let data = {
-                    id: x._id,
-                    title: x.title,
-                    date: x.date,
-                    wordCount: x.wordCount
-                };
-                socket.emit('data', data);
+        if (!socket.cancelNext) {
+            getStoryTitlesByPage(socket.pageNum, socket.connectedDate, function (err, res) {
+                if (res.length > 0) {
+                    res.forEach(function (x) { // x has _id, title, date, wordCount
+                        let data = {
+                            id: x._id,
+                            title: x.title,
+                            date: x.date,
+                            wordCount: x.wordCount
+                        };
+                        socket.emit('data', data);
+                    });
+                }
+                if (res.length < pageSize) { // if less than the max results were returned, there's no more
+                    socket.cancelNext = true;
+                    socket.emit('cancelNext');
+                }
             });
-        });
+            socket.pageNum += 1; // progress socket to next page
+        }
     });
 }
 
