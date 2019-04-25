@@ -18,14 +18,14 @@ if (socket != null) {
 
 function addData(storyData) { // each is an object with '_id', and 'title' and 'wordCount' and 'date' (string in UTC)
     let table = document.getElementById('stories');
-    let row = table.insertRow(-1);
-    let timestamp = row.insertCell(0);
+    let row = table.insertRow(-1); // append a row
+    let timestamp = row.insertCell(0); // add respective columns
     let wordcount = row.insertCell(1);
     let storytitle = row.insertCell(2);
 
     let hlink = document.createElement("a"); // build an anchor out of story title and id
     hlink.href = "view.html?id=" + storyData.id;
-    hlink.innerText = storyData.title;
+    hlink.innerText = storyData.title + "...";
 
     timestamp.innerText = new Date(storyData.date).toLocaleString(); // e.g. "4/24/2019, 10:49:33 PM"
     wordcount.innerText = storyData.wordCount;

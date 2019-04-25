@@ -69,7 +69,7 @@ function getStoryByID(storyID, callback) {
     if (storyDB == null) return;
     let o_id = new mongoDB.ObjectID(storyID); // storyID should be in string form
     storyDB.collection("stories")
-        .find({
+        .findOne({
             _id: o_id // get everything back from the id
         }, callback);
 }
@@ -96,6 +96,8 @@ const io = require('socket.io')(server);
 io.on('connection', newConnection);
 let nsShow = io.of('/show');
 nsShow.on('connection', newShowConnection);
+let nsView = io.of('/view');
+nsView.on('connection', newViewConnection);
 app.use(express.static('public'));
 
 // keeps track of current turn per game, players connected, and the story
@@ -228,7 +230,7 @@ function changeState(room, newState) {
     }
 }
 
-// called when we get a new connection
+// called when we get a new connection to a game client
 function newConnection(socket) {
     console.log("connected to " + socket.id);
 
@@ -400,6 +402,7 @@ function newConnection(socket) {
     });
 }
 
+// called when we get a new connection to a gallery client
 function newShowConnection(socket) {
     console.log("connected to show page " + socket.id);
 
@@ -410,24 +413,41 @@ function newShowConnection(socket) {
     socket.on('next', function () {
         if (!socket.cancelNext) {
             getStoryTitlesByPage(socket.pageNum, socket.connectedDate, function (err, res) {
-                if (res.length > 0) {
-                    res.forEach(function (x) { // x has _id, title, date, wordCount
-                        let data = {
-                            id: x._id,
-                            title: x.title,
-                            date: x.date,
-                            wordCount: x.wordCount
-                        };
-                        socket.emit('data', data);
-                    });
-                }
-                if (res.length < pageSize) { // if less than the max results were returned, there's no more
-                    socket.cancelNext = true;
-                    socket.emit('cancelNext');
+                if (!err) {
+                    if (res.length > 0) {
+                        res.forEach(function (x) { // x has _id, title, date, wordCount
+                            let data = {
+                                id: x._id,
+                                title: x.title,
+                                date: x.date,
+                                wordCount: x.wordCount
+                            };
+                            socket.emit('data', data);
+                        });
+                    }
+                    if (res.length < pageSize) { // if less than the max results were returned, there's no more
+                        socket.cancelNext = true;
+                        socket.emit('cancelNext');
+                    }
+                    socket.pageNum += 1; // progress socket to next page
                 }
             });
-            socket.pageNum += 1; // progress socket to next page
         }
+    });
+}
+
+// called when we get a new connection to a story viewer client
+function newViewConnection(socket) {
+    console.log("connected to viewer " + socket.id)
+
+    socket.on('get', function(storyID) {
+        getStoryByID(storyID, function(err, res) {
+            if (err) {
+                socket.emit('err');
+            } else {
+                socket.emit('receive', res);
+            }
+        });
     });
 }
 

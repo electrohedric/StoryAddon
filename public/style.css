@@ -71,3 +71,13 @@ th {
 	font-family: Verdana, Geneva, sans-serif;
 	font-size: 22px;
 }
+
+#story-info {
+	margin: auto;
+	width: 30%;
+	padding: 10px;
+}
+
+#story-info > p {
+	text-align: left;
+}
