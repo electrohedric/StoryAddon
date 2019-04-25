@@ -20,16 +20,16 @@ if (socket != null) {
 }
 
 function receive(data) {
-    document.getElementById('date').innerText = new Date(data.date).toLocaleString();
-    document.getElementById('word-count').innerText = data.wordCount;
+    document.getElementById('date').innerText = "Created: " + new Date(data.date).toLocaleString();
+    document.getElementById('word-count').innerText = "#Words: " + data.wordCount;
     document.getElementById('title').innerText = data.title;
     document.title = data.title;
     document.getElementById('display').innerHTML = data.text;
 }
 
 function err() {
-    document.getElementById('date').innerText = "?";
-    document.getElementById('word-count').innerText = "?";
+    document.getElementById('date').innerText = "Created: ?";
+    document.getElementById('word-count').innerText = "#Words: ?";
     document.getElementById('title').innerText = "Server error";
     document.title = "Story Add-on Error";
 }
