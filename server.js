@@ -67,7 +67,13 @@ function getStoryTitlesByPage(page, date, callback) { // page starts indexing at
 
 function getStoryByID(storyID, callback) {
     if (storyDB == null) return;
-    let o_id = new mongoDB.ObjectID(storyID); // storyID should be in string form
+    let o_id;
+    try {
+        o_id = new mongoDB.ObjectID(storyID); // storyID should be in string form
+    } catch (err) {
+        callback(err, null);
+        return;
+    }
     storyDB.collection("stories")
         .findOne({
             _id: o_id // get everything back from the id
@@ -438,7 +444,7 @@ function newShowConnection(socket) {
 
 // called when we get a new connection to a story viewer client
 function newViewConnection(socket) {
-    console.log("connected to viewer " + socket.id)
+    console.log("connected to viewer " + socket.id);
 
     socket.on('get', function(storyID) {
         getStoryByID(storyID, function(err, res) {
