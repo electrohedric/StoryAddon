@@ -5,12 +5,12 @@ body {
 }
 
 #leave {
-	font-family: Baskerville;
+	font-family: Baskerville, "Book Antiqua", serif;
 	font-size: 14px;
 }
 
 #load-stories {
-	font-family: Baskerville;
+	font-family: Baskerville, "Book Antiqua", serif;
 	font-size: 18px;
 	float: right;
 }
@@ -22,30 +22,30 @@ body {
 }
 
 #turn {
-	font-family: Baskerville;
+	font-family: Baskerville, "Book Antiqua", serif;
 	font-size: 16px;
 	width: 80%;
 }
 
 textarea {
-	font-family: Baskerville;
+	font-family: Baskerville, "Book Antiqua", serif;
 	font-size: 16px;
 	width: 90%;
 }
 
 p {
-	font-family: Baskerville;
+	font-family: Baskerville, "Book Antiqua", serif;
 	font-size: 18px;
 
 }
 
 h1 {
-	font-family: fantasy;
+	font-family: Impact, Charcoal, sans-serif
 }
 
 .links {
 	padding: 10px;
-	font-family: Verdana;
+	font-family: Verdana, Geneva, sans-serif;
 	font-size: 28px;
 }
 
@@ -62,12 +62,12 @@ table, td, th {
 
 td {
 	padding: 10px;
-	font-family: Verdana;
-	font-size: 22px;
+	font-family: Verdana, Geneva, sans-serif;
+	font-size: 18px;
 }
 
 th {
 	padding: 10px;
-	font-family: Verdana;
-	font-size: 24px;
+	font-family: Verdana, Geneva, sans-serif;
+	font-size: 22px;
 }
