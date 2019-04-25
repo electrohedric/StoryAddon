@@ -25,6 +25,7 @@ function addData(storyData) { // each is an object with '_id', and 'title' and '
 
     let hlink = document.createElement("a"); // build an anchor out of story title and id
     hlink.href = "view.html?id=" + storyData.id;
+    hlink.target = "_blank"; // open in a new tab so it saves all the loaded rows
     hlink.innerText = storyData.title + "...";
 
     timestamp.innerText = new Date(storyData.date).toLocaleString(); // e.g. "4/24/2019, 10:49:33 PM"
