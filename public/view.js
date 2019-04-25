@@ -20,11 +20,18 @@ if (socket != null) {
 }
 
 function receive(data) {
-    document.getElementById('date').innerText = "Created: " + new Date(data.date).toLocaleString();
-    document.getElementById('word-count').innerText = "#Words: " + data.wordCount;
-    document.getElementById('title').innerText = data.title + "...";
-    document.title = data.title.substring(0, 25) + "..."; // cut the title down even short to the first 25 chars
-    document.getElementById('display').innerHTML = data.text;
+    if (data === null) {
+        document.getElementById('date').innerText = "Created: ?";
+        document.getElementById('word-count').innerText = "#Words: ?";
+        document.getElementById('title').innerText = "That ID does not exist";
+        document.title = "Story Add-on Error";
+    } else {
+        document.getElementById('date').innerText = "Created: " + new Date(data.date).toLocaleString();
+        document.getElementById('word-count').innerText = "#Words: " + data.wordCount;
+        document.getElementById('title').innerText = data.title + "...";
+        document.title = data.title.substring(0, 25) + "..."; // cut the title down even short to the first 25 chars
+        document.getElementById('display').innerHTML = data.text;
+    }
 }
 
 function err() {
