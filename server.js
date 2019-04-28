@@ -57,7 +57,7 @@ function getStoryTitlesByPage(page, date, callback) { // page starts indexing at
                 }
             })
             .sort({ // sort in reverse order (sort by newest first)
-                $natural: -1
+                date: -1
             })
             .skip(pageSize * page)  // skip results to nth page
             .limit(pageSize) // get only n results back (the page)
