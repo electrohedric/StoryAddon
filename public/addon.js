@@ -119,7 +119,7 @@ function handleKeyPress(event) {
     // TODO: do nice syntax highlighting somehow with error checking
     console.log(event);
     if (event.keyCode === 13) { // enter pressed
-        endTurn();
+        setTimeout(endTurn, 50); // let autocorrect correct before it sends
     }
 }
 
@@ -131,7 +131,5 @@ function leaveGame() {
 function playerLeft(permanent) { // bool
     if (permanent) {
         alert("A player has ended the game and left.");
-    } else {
-        alert("A player left... but they may come back.");
     }
 }
