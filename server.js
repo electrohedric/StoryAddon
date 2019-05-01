@@ -15,8 +15,8 @@ if (port == null || port === "") { // if on prod server, then run on the require
 }
 
 //Time consts
-const SINGLEWORDTIME = 60 * 1000 * 3;
-const THREEWORDTIME = 60 * 1000 * 3;
+const SINGLEWORDTIME = 60 * 1000 * 2; // 2 minutes
+const THREEWORDTIME = 60 * 1000 * 3; // 3 minutes
 
 
 /************* MongoDB *************/
