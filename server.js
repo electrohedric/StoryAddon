@@ -328,6 +328,7 @@ function newConnection(socket) {
             let addText = textData.trim(); // alter their text to fit basic grammar (i.e. format spaces)
             // check for invalid syntax for the game state.
             // these should never get past the client, but we still have to check
+            if (addText.length === 0) return; // passing your turn isn't allowed
             switch (getRoomState(socket.room)) {
                 case GAMESTATE.SINGLEWORD:
                     // matches punctuation on either side of a word with any character except a space;
