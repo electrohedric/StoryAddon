@@ -86,7 +86,9 @@ function loadTurn(data) {
     // disable or enable the turn box depending on whether it's their turn or not
     document.getElementById('turn').disabled = (data.nextTurn !== myTurnOrder);
     document.getElementById('turn').placeholder = data.nextTurn === myTurnOrder ? "It is your turn " + ghostTextInstructions : "It is another players turn";
-    document.getElementById('turn').value = ''; // clear the text box after our own submission to confirm
+    if (data.text !== "") { // if mode update only then don't delete their stuff
+        document.getElementById('turn').value = ''; // clear the text box after our own submission to confirm
+    }
     if (data.nextTurn === myTurnOrder) {
         document.getElementById('turn').focus();
     }
